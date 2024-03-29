@@ -1,0 +1,31 @@
+<!--<html>-->
+<!--<body>-->
+<!--<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/chat.css')}}">-->
+<!--<div>-->
+<!--    &lt;!&ndash;    <textarea name="answer" cols="30" rows="10" readonly>{{ sample_output }}</textarea>&ndash;&gt;-->
+<!--    <div class="block" contenteditable>-->
+<!--        Внезапно, стремящиеся вытеснить традиционное производство, нанотехнологии, инициированные исключительно синтетически, смешаны с не уникальными данными до степени совершенной неузнаваемости, из-за чего возрастает их статус бесполезности. Современные технологии достигли такого уровня, что синтетическое тестирование влечет за собой процесс внедрения и модернизации существующих финансовых и административных условий. Наше дело не так однозначно, как может показаться: глубокий уровень погружения предоставляет широкие возможности для экономической целесообразности принимаемых решений. Для современного мира дальнейшее развитие различных форм деятельности, а также свежий взгляд на привычные вещи — безусловно открывает новые горизонты для системы обучения кадров, соответствующей насущным потребностям.-->
+<!--        <img src="https://www.cyberforum.ru/images/buttons/report.png" alt=""/>-->
+<!--    </div>-->
+
+<!--    <button class="buttons" onclick="document.location='/chat'">отправить</button>-->
+<!--</div>-->
+<!--</body>-->
+<!--</html>-->
+
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/chat.css')}}">
+<body>
+<div class='private_msg' contenteditable="false">{{ sample_output }}
+<img class="image" src="/static/images/image.jpg" alt=""/></div>
+<!--  <input class="text_label" name="text_label" type="text" value="{{ sample_input }}"/>-->
+<!--  <textarea class="text_label" name="text_label"></textarea>-->
+<!--<div><input name="text_label" type="text" value="{{ sample_input }}"/></div>-->
+<form action="/chat" method="POST">
+    <div>
+        <textarea class="text_label" name="text_label">{{ sample_input }}</textarea>
+<!--        <input name="text_label" type="text" value="{{ sample_input }}"/>-->
+    </div>
+    <button class="buttons" onclick="document.location='/chat'">отправить</button>
+<!--    <input type="submit" value="send"/>-->
+</form>
+</body>

@@ -1,0 +1,40 @@
+<!--<div class="login-box">-->
+<!--&lt;!&ndash;    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/login.css')}}">&ndash;&gt;-->
+<!--  <h2>Login</h2>-->
+<!--  <form>-->
+<!--    <div class="user-box">-->
+<!--      <input type="text" name="" required="">-->
+<!--      <label>Username</label>-->
+<!--    </div>-->
+<!--    <div class="user-box">-->
+<!--      <input type="text" name="" required="">-->
+<!--      <label>Password</label>-->
+<!--    </div>-->
+<!--    <a href="#">-->
+<!--      <span></span>-->
+<!--      <span></span>-->
+<!--      <span></span>-->
+<!--      <span></span>-->
+<!--      Submit-->
+<!--    </a>-->
+<!--  </form>-->
+<!--</div>-->
+
+<html>
+<body>
+<div>
+    <h2>Login</h2>
+    <form action="/login" method="POST">
+        <div>
+            <input name="username" type="text" value=""/>
+            <label>Username</label>
+        </div>
+        <div>
+            <input name="password" type="text" value=""/>
+            <label>password</label>
+        </div>
+        <input type="submit" value="Login"/>
+    </form>
+</div>
+</body>
+</html>

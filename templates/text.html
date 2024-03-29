@@ -1,0 +1,21 @@
+<html>
+<body>
+<div>
+<!--    <form oninput="result.value=parseInt(a.value)+parseInt(b.value)">-->
+<!--        <input type="range" id="b" name="b" value="50"/> +-->
+<!--        <input type="number" id="a" name="a" value="10"/> =-->
+<!--        <output name="result" for="1234">60</output>-->
+<!--    </form>-->
+<!--    <output name="result">Однозначно, многие известные личности, инициированные исключительно синтетически, описаны максимально подробно. Мы вынуждены отталкиваться от того, что убеждённость некоторых оппонентов способствует повышению качества экономической целесообразности принимаемых решений. Банальные, но неопровержимые выводы, а также интерактивные прототипы обнародованы.</output>-->
+    <textarea name="answer" cols="30" rows="10" readonly>
+{{ sample_output }}
+    </textarea>
+    <form action="/text" method="POST">
+        <div>
+            <input name="text_label" type="text" value="{{ sample_input }}"/>
+        </div>
+        <input type="submit" value="send"/>
+    </form>
+</div>
+</body>
+</html>
