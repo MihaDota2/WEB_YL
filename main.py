@@ -1,10 +1,10 @@
 from flask import Flask, render_template, request, redirect, flash
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask_login import LoginManager, UserMixin, login_required
+# from flask_login import LoginManager, UserMixin, login_required
 from gigachat import GigaChat
 from bs4 import BeautifulSoup
 import sqlite3
-import base64
+# import base64
 import json
 import requests
 import uuid
@@ -157,7 +157,7 @@ def login_ip():
 
 @app.route('/')
 def pop():
-    return "EasyAI"
+    return redirect("/home", code=302)
 
 
 @app.route('/home')
@@ -171,24 +171,23 @@ def chat():
         text_input = request.form['text_label']
         print(text_input)
 
-        con = sqlite3.connect('History.db')
-        cur = con.cursor()
+        # con = sqlite3.connect('History.db')
+        # cur = con.cursor()
+        #
+        # cur.execute('INSERT INTO History (text) VALUES (?)', (text_input,))
+        #
+        # cur.execute('SELECT text FROM History')
+        # texts = cur.fetchall()
 
-        cur.execute('INSERT INTO History (text) VALUES (?)', (text_input,))
+        # text_input = ''
+        #
+        # # Выводим результаты
+        # for text in texts:
+        #     text_input += text[0]
 
-        cur.execute('SELECT text FROM History')
-        texts = cur.fetchall()
-
-        text_input = ''
-
-        # Выводим результаты
-        for text in texts:
-            text_input += text[0]
-
-        con.commit()
+        # con.commit()
 
         if text_input:
-            print(text_input)
             output = text_input
 
             with GigaChat(
@@ -197,37 +196,37 @@ def chat():
                 response = giga.chat(text_input)
                 output = response.choices[0].message.content
 
-                cur.execute('INSERT INTO History (text) VALUES (?)', (output,))
+            #     cur.execute('INSERT INTO History (text) VALUES (?)', (output,))
 
-            # response = get_token(auth)
-            # if response != 1:
-            #     # print(response.text)
-            #     giga_token = response.json()['access_token']
-            #
-            # print(output)
-            #
-            # user_message = 'нарисуй изображение которое будет соответствовать содержанию текста' + output
-            # response_img_tag = send_chat_request(giga_token, user_message)
-            # # print(response_img_tag)
-            #
-            # # Парсим HTML
-            # soup = BeautifulSoup(response_img_tag, 'html.parser')
-            #
-            # # Извлекаем значение атрибута `src`
-            # img_src = soup.img['src']
-            # headers = {
-            #     'Content-Type': 'application/json',
-            #     'Authorization': f'Bearer {giga_token}', }
-            #
-            # response = requests.get(f'https://gigachat.devices.sberbank.ru/api/v1/files/{img_src}/content',
-            #                         headers=headers,
-            #                         verify=False)
-            #
-            # with open('static/images/image.jpg', 'wb') as f:
-            #     f.write(response.content)
+            response = get_token(auth)
+            if response != 1:
+                # print(response.text)
+                giga_token = response.json()['access_token']
+
+            print(output)
+
+            user_message = 'нарисуй изображение которое будет соответствовать содержанию текста' + output
+            response_img_tag = send_chat_request(giga_token, user_message)
+            # print(response_img_tag)
+
+            # Парсим HTML
+            soup = BeautifulSoup(response_img_tag, 'html.parser')
+
+            # Извлекаем значение атрибута `src`
+            img_src = soup.img['src']
+            headers = {
+                'Content-Type': 'application/json',
+                'Authorization': f'Bearer {giga_token}', }
+
+            response = requests.get(f'https://gigachat.devices.sberbank.ru/api/v1/files/{img_src}/content',
+                                    headers=headers,
+                                    verify=False)
+
+            with open('static/images/image.jpg', 'wb') as f:
+                f.write(response.content)
 
         return render_template("chat.html", sample_output=output)
-    # else:
+    else:
     #     with GigaChat(
     #             credentials=auth,
     #             verify_ssl_certs=False) as giga:
@@ -238,7 +237,7 @@ def chat():
     #
     #     cur.execute('INSERT INTO History (text) VALUES (?)', (output,))
     #     con.commit()
-    #     return render_template('chat.html', sample_output=output)
+        return render_template('chat.html')
 
 
 @app.route('/model')
