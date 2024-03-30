@@ -60,8 +60,12 @@ text TEXT NOT NULL
 )
 ''')
 
-cur.execute('INSERT INTO History (text) VALUES (?)', (promt,))
+cur.execute('DELETE FROM History')
+cur.execute('INSERT INTO History (text) VALUES (?)', ('Слова пользователя: ' + promt,))
 con.commit()
+flag = True
+message_history = ''
+image_number = 1
 
 
 def get_token(auth_token, scope='GIGACHAT_API_PERS'):
@@ -167,76 +171,95 @@ def home():
 
 @app.route('/chat', methods=["POST", "GET"])
 def chat():
+    global flag
+    global message_history
+    global image_number
     if request.method == 'POST':
         text_input = request.form['text_label']
         print(text_input)
 
-        # con = sqlite3.connect('History.db')
-        # cur = con.cursor()
-        #
-        # cur.execute('INSERT INTO History (text) VALUES (?)', (text_input,))
-        #
-        # cur.execute('SELECT text FROM History')
-        # texts = cur.fetchall()
+        connection = sqlite3.connect('History.db')
+        cursor = connection.cursor()
+        output = text_input
+        message_history += '\nСлова пользователя: ' + text_input + '\n'
 
-        # text_input = ''
-        #
-        # # Выводим результаты
-        # for text in texts:
-        #     text_input += text[0]
+        cursor.execute('INSERT INTO History (text) VALUES (?)', ('\nСлова пользователя: ' + text_input,))
 
-        # con.commit()
+        history_text = ''
 
-        if text_input:
-            output = text_input
+        cursor.execute('SELECT text FROM History')
+        texts = cursor.fetchall()
+        for text in texts:
+            history_text += text[0]
+        with GigaChat(
+                credentials=auth,
+                verify_ssl_certs=False) as giga:
+            response = giga.chat(history_text)
+            output = response.choices[0].message.content
+        print(output)
+        message_history += '\nСлова GigaChat: ' + output + '\n'
 
-            with GigaChat(
-                    credentials=auth,
-                    verify_ssl_certs=False) as giga:
-                response = giga.chat(text_input)
-                output = response.choices[0].message.content
+        cursor.execute('INSERT INTO History (text) VALUES (?)', ('\nСлова GigaChat: ' + output,))
+        connection.commit()
 
-            #     cur.execute('INSERT INTO History (text) VALUES (?)', (output,))
+        response = get_token(auth)
+        if response != 1:
+            # print(response.text)
+            giga_token = response.json()['access_token']
 
-            response = get_token(auth)
-            if response != 1:
-                # print(response.text)
-                giga_token = response.json()['access_token']
+        with GigaChat(
+                credentials=auth,
+                verify_ssl_certs=False) as giga:
+            response = giga.chat('Создай на базе этого текста промт для генерации картинки' + history_text)
+            output = response.choices[0].message.content
 
-            print(output)
+        print(output)
 
-            user_message = 'нарисуй изображение которое будет соответствовать содержанию текста' + output
-            response_img_tag = send_chat_request(giga_token, user_message)
-            # print(response_img_tag)
+        user_message = 'Нарисуй изображение которое будет соответствовать содержанию текста: \n' + output
+        response_img_tag = send_chat_request(giga_token, user_message)
+        # print(response_img_tag)
 
-            # Парсим HTML
-            soup = BeautifulSoup(response_img_tag, 'html.parser')
+        # Парсим HTML
+        soup = BeautifulSoup(response_img_tag, 'html.parser')
 
-            # Извлекаем значение атрибута `src`
-            img_src = soup.img['src']
-            headers = {
-                'Content-Type': 'application/json',
-                'Authorization': f'Bearer {giga_token}', }
+        # Извлекаем значение атрибута `src`
+        img_src = soup.img['src']
+        headers = {
+            'Content-Type': 'application/json',
+            'Authorization': f'Bearer {giga_token}', }
 
-            response = requests.get(f'https://gigachat.devices.sberbank.ru/api/v1/files/{img_src}/content',
-                                    headers=headers,
-                                    verify=False)
+        response = requests.get(f'https://gigachat.devices.sberbank.ru/api/v1/files/{img_src}/content',
+                                headers=headers,
+                                verify=False)
 
-            with open('static/images/image.jpg', 'wb') as f:
-                f.write(response.content)
+        with open(f'static/images/image.jpg', 'wb') as f:
+            f.write(response.content)
 
-        return render_template("chat.html", sample_output=output)
+        # with open(f'static/images/image{image_number}.jpg', 'wb') as f:
+        #     f.write(response.content)
+
+        # image_number += 1
+
+        connection.commit()
+
+        return render_template("chat.html", sample_output=message_history)
+    elif flag:
+        with GigaChat(
+                credentials=auth,
+                verify_ssl_certs=False) as giga:
+            response = giga.chat(promt)
+            output = response.choices[0].message.content
+        connection = sqlite3.connect('History.db')
+        cursor = connection.cursor()
+
+        print(output)
+
+        cursor.execute('INSERT INTO History (text) VALUES (?)', ('\nСлова GigaChat: ' + output,))
+        connection.commit()
+        flag = False
+        message_history += '\nСлова GigaChat: ' + output + '\n'
+        return render_template('chat.html', sample_output=output)
     else:
-    #     with GigaChat(
-    #             credentials=auth,
-    #             verify_ssl_certs=False) as giga:
-    #         response = giga.chat(promt)
-    #         output = response.choices[0].message.content
-    #     con = sqlite3.connect('History.db')
-    #     cur = con.cursor()
-    #
-    #     cur.execute('INSERT INTO History (text) VALUES (?)', (output,))
-    #     con.commit()
         return render_template('chat.html')
 
 
@@ -322,20 +345,21 @@ def func_registration():
 
 @app.route('/registration')
 def f0():
-    if not login_ip():
-        return render_template('registration.html')
-    else:
-        return redirect("/model", code=302)
+    return render_template("chat.html", sample_output='<img class="image" src="/static/images/image.jpg" alt="">')
+    # if not login_ip():
+    #     return render_template('registration.html')
+    # else:
+    #     return redirect("/model", code=302)
 
 
 if __name__ == '__main__':
     app.run(port=8080, host='127.0.0.1')
 
-con = sqlite3.connect('History.db')
-cur = con.cursor()
-
-cur.execute('DELETE FROM text')
-con.commit()
+# con = sqlite3.connect('History.db')
+# cur = con.cursor()
+#
+# cur.execute('DELETE FROM text')
+# con.commit()
 
 # # Сохраняем изменения и закрываем соединение
 # con.commit()

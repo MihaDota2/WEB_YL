@@ -174,60 +174,76 @@
 # if __name__ == "__main__":
 #     app.run()
 
-import sqlite3
-
-from gigachat import GigaChat
-
-promt = 'Слова пользователя: ' + '''Давай создадим интерактивную игру внутри GigaChat? Как например в настольных ролевых играх, где GigaChat будет выступать в роли ведущего, а я в роли игрока.
-В начале мы создадим сеттинг и мир в котором будут происходит события игры. Для этого ты предложишь мне пять вариантов на выбор.
-Далее создадим персонажа выбрав из пяти предложенных вариантов на выбор. 
-Далее GigaChat будет рассказывать историю про моего персонажа и предоставлять 5 вариантов для действий, которые может совершить мой персонаж. При этом каждая история начинается с четкой завязки, где у нас есть прописанная цель к которой мы идем. Сложность игры достаточно высокая и необдуманные поступки могут привести к трагическим последствиям. Игрок выбирает действие которое совершает персонаж и это продвигает его по сюжету игры
-Ответ GigaChat всегда должен выглядеть подобным образом:
-Информация
-Первый вариант
-Второй вариант
-Третий вариант
-Четвертый вариант
-Пятый вариант'''
-
-connection = sqlite3.connect('History.db')
-cursor = connection.cursor()
-
-cursor.execute('DELETE FROM History')
-cursor.execute('INSERT INTO History (text) VALUES (?)', (promt,))
-
-# cursor.execute('SELECT text FROM History')
-# texts = cursor.fetchall()
-
-# # Выводим результаты
-# for text in texts:
-#     print(text[0])
-
-auth = 'ZGIwZmJmZGYtZThiMi00MDI0LTg4YTUtYjU0YTg5NDc3Y2FkOmQ4ZDg0ZWE4LWJjMmUtNGZhNi05YWM4LWRlODgxZDgzZmI2Yg=='
-secret = 'd8d84ea8-bc2e-4fa6-9ac8-de881d83fb6b'
-client_id = 'db0fbfdf-e8b2-4024-88a5-b54a89477cad'
-
-while True:
-    text_input = ''
-
-    cursor.execute('SELECT text FROM History')
-    texts = cursor.fetchall()
-    for text in texts:
-        # print(text[0])
-        text_input += text[0]
-    # print(text_input)
-    with GigaChat(
-            credentials=auth,
-            verify_ssl_certs=False) as giga:
-        response = giga.chat(text_input)
-        output = response.choices[0].message.content
-    print(output)
-    cursor.execute('INSERT INTO History (text) VALUES (?)', ('\nСлова GigaChat: ' + output,))
-
-    text_input = '\nСлова пользователя: ' + input()
-    cursor.execute('INSERT INTO History (text) VALUES (?)', (text_input,))
-    connection.commit()
+# import sqlite3
+#
+# from gigachat import GigaChat
+#
+# promt = 'Слова пользователя: ' + '''Давай создадим интерактивную игру внутри GigaChat? Как например в настольных ролевых играх, где GigaChat будет выступать в роли ведущего, а я в роли игрока.
+# В начале мы создадим сеттинг и мир в котором будут происходит события игры. Для этого ты предложишь мне пять вариантов на выбор.
+# Далее создадим персонажа выбрав из пяти предложенных вариантов на выбор.
+# Далее GigaChat будет рассказывать историю про моего персонажа и предоставлять 5 вариантов для действий, которые может совершить мой персонаж. При этом каждая история начинается с четкой завязки, где у нас есть прописанная цель к которой мы идем. Сложность игры достаточно высокая и необдуманные поступки могут привести к трагическим последствиям. Игрок выбирает действие которое совершает персонаж и это продвигает его по сюжету игры
+# Ответ GigaChat всегда должен выглядеть подобным образом:
+# Информация
+# Первый вариант
+# Второй вариант
+# Третий вариант
+# Четвертый вариант
+# Пятый вариант'''
+#
+# connection = sqlite3.connect('History.db')
+# cursor = connection.cursor()
+#
+# cursor.execute('DELETE FROM History')
+# cursor.execute('INSERT INTO History (text) VALUES (?)', (promt,))
+#
+# # cursor.execute('SELECT text FROM History')
+# # texts = cursor.fetchall()
+#
+# # # Выводим результаты
+# # for text in texts:
+# #     print(text[0])
+#
+# auth = 'ZGIwZmJmZGYtZThiMi00MDI0LTg4YTUtYjU0YTg5NDc3Y2FkOmQ4ZDg0ZWE4LWJjMmUtNGZhNi05YWM4LWRlODgxZDgzZmI2Yg=='
+# secret = 'd8d84ea8-bc2e-4fa6-9ac8-de881d83fb6b'
+# client_id = 'db0fbfdf-e8b2-4024-88a5-b54a89477cad'
+#
+# while True:
+#     text_input = ''
+#
+#     cursor.execute('SELECT text FROM History')
+#     texts = cursor.fetchall()
+#     for text in texts:
+#         # print(text[0])
+#         text_input += text[0]
+#     # print(text_input)
+#     with GigaChat(
+#             credentials=auth,
+#             verify_ssl_certs=False) as giga:
+#         response = giga.chat(text_input)
+#         output = response.choices[0].message.content
+#     print(output)
+#     cursor.execute('INSERT INTO History (text) VALUES (?)', ('\nСлова GigaChat: ' + output,))
+#
+#     text_input = '\nСлова пользователя: ' + input()
+#     cursor.execute('INSERT INTO History (text) VALUES (?)', (text_input,))
+#     connection.commit()
 
 
 # connection.commit()
 # connection.close()
+
+# with open('templates/chat.html', 'r') as file:
+#     print(file.read().replace(' * ', '<img class="image" src="/static/images/image.jpg" alt=""/>\n*'))
+#     # file.write('\n<img class="image" src="/static/images/image.jpg" alt=""/>')
+
+from bs4 import BeautifulSoup
+import re
+
+# html = """<p class="description" dir="ltr">Name is a fine man. <br></p>"""
+# with open('templates/chat.html', 'r') as file:
+#     print(file.readlines()[])
+    # soup = BeautifulSoup(file.read())
+    # target = soup.find(text=re.compile(r'*'))
+    # for v in target:
+    #     v.replace_with(v.replace('Name','Id'))
+    # print(soup)
