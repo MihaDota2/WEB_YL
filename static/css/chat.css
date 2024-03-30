@@ -41,14 +41,14 @@ body, html {
 
 .buttons {
  color:rgb(255, 46, 91);
- padding: 8px 20px;
- width:150px;
+
+ width:15%;
  height:5%;
  text-decoration:none;
  margin: 0 auto;
  display: block;
  margin-left: 76%;
- margin-top: -4.6%;
+ margin-top: -2.5%;
  display: block;
  background: rgb(6, 9, 20);
  background-image: linear-gradient(to left,transparent,transparent 50%,rgb(12, 16, 33) 50%,rgb(12, 16, 33));
