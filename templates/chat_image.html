@@ -1,0 +1,14 @@
+<!--<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/chat.css')}}">-->
+<textarea class='private_msg' contenteditable="false">{{ sample_output }}</textarea>
+<!--<img class="image" src="/static/images/image.jpg" alt=""/></div>-->
+<!--  <input class="text_label" name="text_label" type="text" value="{{ sample_input }}"/>-->
+<!--  <textarea class="text_label" name="text_label"></textarea>-->
+<!--<div><input name="text_label" type="text" value="{{ sample_input }}"/></div>-->
+<form action="/chat_giga" method="POST">
+    <div>
+        <textarea class="text_label" name="text_label">{{ sample_input }}</textarea>
+<!--        <input name="text_label" type="text" value="{{ sample_input }}"/>-->
+    </div>
+    <button class="buttons" onclick="document.location='/chat_giga'">отправить</button>
+<!--    <input type="submit" value="send"/>-->
+</form>
