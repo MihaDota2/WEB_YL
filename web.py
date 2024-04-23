@@ -156,7 +156,7 @@ def pop():
 
 @app.route('/home')
 def home():
-    return render_template('home.html')
+    return render_template('unlog_home.html')
 
 
 @app.route('/info')
