@@ -294,13 +294,13 @@ def func_chat_giga():
     if login_ip():
         if request.method == 'POST':
             text_input = request.form['text_label']
-            print(text_input)
+            # print(text_input)
             with GigaChat(
                     credentials=auth,
                     verify_ssl_certs=False) as giga:
                 response = giga.chat(text_input)
                 output = response.choices[0].message.content
-            print(output)
+            # print(output)
             return render_template('chat_text.html', sample_output=output)
         return render_template('chat_text.html')
     else:

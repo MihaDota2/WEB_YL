@@ -7,6 +7,11 @@
 <form action="/chat_giga" method="POST">
     <div>
         <textarea class="text_label" name="text_label">{{ sample_input }}</textarea>
+        {% if filename %}
+          <h1>some text<img src="{{filename}}"> more text!</h1>
+        {% else %}
+          <h1>no image for whatever reason</h1>
+        {% endif %}
 <!--        <input name="text_label" type="text" value="{{ sample_input }}"/>-->
     </div>
     <button class="buttons" onclick="document.location='/chat_giga'">отправить</button>
