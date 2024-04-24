@@ -37,43 +37,6 @@ username TEXT NOT NULL
 
 con.commit()
 
-# Устанавливаем соединение с базой данных
-con = sqlite3.connect('History.db')
-cur = con.cursor()
-
-# Создаем таблицу History
-cur.execute('''
-CREATE TABLE IF NOT EXISTS GigaChat (
-id INTEGER PRIMARY KEY,
-text TEXT NOT NULL
-)
-''')
-cur.execute('''
-CREATE TABLE IF NOT EXISTS Kandinsky (
-id INTEGER PRIMARY KEY,
-text TEXT NOT NULL
-)
-''')
-cur.execute('''
-CREATE TABLE IF NOT EXISTS ChatGPT (
-id INTEGER PRIMARY KEY,
-text TEXT NOT NULL
-)
-''')
-cur.execute('''
-CREATE TABLE IF NOT EXISTS Midjourney (
-id INTEGER PRIMARY KEY,
-text TEXT NOT NULL
-)
-''')
-
-cur.execute('DELETE FROM GigaChat')
-cur.execute('DELETE FROM Kandinsky')
-cur.execute('DELETE FROM ChatGPT')
-cur.execute('DELETE FROM Midjourney')
-# cur.execute('INSERT INTO History (text) VALUES (?)', ('Слова пользователя: ' + promt,))
-con.commit()
-
 
 def get_token(auth_token, scope='GIGACHAT_API_PERS'):
     """
@@ -275,6 +238,25 @@ def func_registration():
                     (username, generate_password_hash(password)))
         cur.execute('INSERT INTO Login (ip, username) VALUES (?, ?)',
                     (request.environ['REMOTE_ADDR'], username))
+
+        # Создаем таблицу Users
+        cur.execute(f'''
+        CREATE TABLE IF NOT EXISTS {username}_images (
+        id INTEGER PRIMARY KEY,
+        ai TEXT NOT NULL,
+        file TEXT NOT NULL
+        )
+        ''')
+
+        cur.execute(f'''
+        CREATE TABLE IF NOT EXISTS {username}_text (
+        id INTEGER PRIMARY KEY,
+        ai TEXT NOT NULL,
+        promt TEXT NOT NULL,
+        answer TEXT NOT NULL
+        )
+        ''')
+
         con.commit()
         return redirect("/home", code=302)
 
@@ -289,61 +271,105 @@ def registration():
         return redirect("/home", code=302)
 
 
+def func_chat_giga(promt):
+    text_input = promt
+    name = login_ip()[0][0]
+    with GigaChat(
+            credentials=auth,
+            verify_ssl_certs=False) as giga:
+        response = giga.chat(text_input)
+        output = response.choices[0].message.content
+
+    con = sqlite3.connect('Users.db')
+    cur = con.cursor()
+
+    cur.execute(f'SELECT max(id) FROM {name}_text')
+    max_id = cur.fetchone()[0]
+    if not max_id:
+        max_id = 0
+    else:
+        max_id = int(max_id)
+    cur.execute(f'INSERT INTO {name}_text (ai, promt, answer) VALUES (?, ?, ?)', ('gigachat', promt, output))
+    con.commit()
+    return output
+
+
+# @app.route('/add_chat_giga')
+# def registration():
+#     return redirect("/chat_giga", code=302)
+
+
 @app.route('/chat_giga', methods=["POST", "GET"])
-def func_chat_giga():
+def chat_giga():
+    mode = 'msg'
     if login_ip():
         if request.method == 'POST':
-            text_input = request.form['text_label']
-            # print(text_input)
-            with GigaChat(
-                    credentials=auth,
-                    verify_ssl_certs=False) as giga:
-                response = giga.chat(text_input)
-                output = response.choices[0].message.content
-            # print(output)
-            return render_template('chat_text.html', sample_output=output)
-        return render_template('chat_text.html')
+            output = ''
+            msg = request.form["msg"]
+            if mode == 'img':
+                output = f'<img src="{msg}" alt="Изображение">'
+            if mode == 'msg':
+                output = func_chat_giga(msg)
+            return output
+        return render_template('chat_giga.html')
     else:
         return render_template('error_401.html')
 
 
-# @app.route('/chat_kandinsky', methods=["POST", "GET"])
-# def chat_kandinsky():
-#     if login_ip():
-#         response = get_token(auth)
-#         if response != 1:
-#             # print(response.text)
-#             giga_token = response.json()['access_token']
-#
-#         with GigaChat(
-#                 credentials=auth,
-#                 verify_ssl_certs=False) as giga:
-#             response = giga.chat('Создай на базе этого текста промт для генерации картинки' + history_text)
-#             output = response.choices[0].message.content
-#
-#         print(output)
-#
-#         user_message = 'Нарисуй изображение которое будет соответствовать содержанию текста: \n' + output
-#         response_img_tag = send_chat_request(giga_token, user_message)
-#         # print(response_img_tag)
-#
-#         # Парсим HTML
-#         soup = BeautifulSoup(response_img_tag, 'html.parser')
-#
-#         # Извлекаем значение атрибута `src`
-#         img_src = soup.img['src']
-#         headers = {
-#             'Content-Type': 'application/json',
-#             'Authorization': f'Bearer {giga_token}', }
-#
-#         response = requests.get(f'https://gigachat.devices.sberbank.ru/api/v1/files/{img_src}/content',
-#                                 headers=headers,
-#                                 verify=False)
-#
-#         with open(f'static/images/image.jpg', 'wb') as f:
-#             f.write(response.content)
-#     else:
-#         return render_template('error_401.html')
+def func_chat_kandinsky(promt):
+    name = login_ip()[0][0]
+    response = get_token(auth)
+    if response != 1:
+        giga_token = response.json()['access_token']
+
+    user_message = promt
+    response_img_tag = send_chat_request(giga_token, user_message)
+
+    # Парсим HTML
+    soup = BeautifulSoup(response_img_tag, 'html.parser')
+
+    # Извлекаем значение атрибута `src`
+    img_src = soup.img['src']
+    headers = {
+        'Content-Type': 'application/json',
+        'Authorization': f'Bearer {giga_token}', }
+
+    response = requests.get(f'https://gigachat.devices.sberbank.ru/api/v1/files/{img_src}/content',
+                            headers=headers,
+                            verify=False)
+
+    con = sqlite3.connect('Users.db')
+    cur = con.cursor()
+
+    cur.execute(f'SELECT max(id) FROM {name}_images')
+    max_id = cur.fetchone()[0]
+    if not max_id:
+        max_id = 0
+    else:
+        max_id = int(max_id)
+    cur.execute(f'INSERT INTO {name}_images (file, ai) VALUES (?, ?)', (f'{name}_image_{max_id + 1}.jpg', 'kandinsky'))
+    con.commit()
+    with open(f'static/users_images/{name}_image_{max_id + 1}.jpg', 'wb') as f:
+        f.write(response.content)
+
+    return f'static/users_images/{name}_image_{max_id + 1}.jpg'
+
+
+@app.route('/chat_kandinsky', methods=["POST", "GET"])
+def chat_kandinsky():
+    mode = 'img'
+    if login_ip():
+        if request.method == 'POST':
+            output = ''
+            msg = request.form["msg"]
+            if mode == 'img':
+                output = f'<img src="{func_chat_kandinsky(msg)}" class="img_msg" alt="Изображение">'
+            if mode == 'msg':
+                output = msg
+            return output
+        return render_template('chat_kandinsky.html')
+    else:
+        return render_template('error_401.html')
 
 
 @app.route('/chat_gpt', methods=["POST", "GET"])

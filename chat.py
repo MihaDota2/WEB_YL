@@ -14,10 +14,12 @@ def index():
     return render_template('chat.html')
 
 
-@app.route("/get", methods=["GET", "POST"])
+@app.route("/chat", methods=["GET", "POST"])
 def chat():
+    mode = ''
     msg = request.form["msg"]
-    # input = msg
+    if mode == 'img':
+        msg = f'<img src="{msg}" alt="Изображение">'
     return msg
 
 
